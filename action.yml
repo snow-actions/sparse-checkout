@@ -145,4 +145,5 @@ runs:
 
     - name: Logging commit sha
       run: $GIT log -1 --format='%H'
+      working-directory: ${{ inputs.path }}
       shell: bash
