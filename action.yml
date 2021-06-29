@@ -89,17 +89,6 @@ runs:
       working-directory: ${{ inputs.path }}
       shell: bash
 
-    - name: Setting up auth
-      run: |
-        echo "::group::Setting up auth"
-        BASIC_CREDENTIAL="x-access-token:$(echo $TOKEN | xxd -p -c 256)"
-        echo "::add-mask::${BASIC_CREDENTIAL}"
-        $GIT config --local http.${GITHUB_SERVER_URL}/.extraheader "AUTHORIZATION: basic ${BASIC_CREDENTIAL}"
-        echo "::endgroup::"
-      env:
-        TOKEN: ${{ inputs.token }}
-      shell: bash
-
     - name: Setting up sparse checkout
       run: |
         echo "::group::Setting up sparse checkout"
@@ -156,4 +145,5 @@ runs:
 
     - name: Logging commit sha
       run: $GIT log -1 --format='%H'
+      working-directory: ${{ inputs.path }}
       shell: bash
