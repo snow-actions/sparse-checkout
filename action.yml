@@ -1,4 +1,4 @@
-name: 'Sparse checkout'
+name: 'Sparse checkout action'
 description: 'Sparse checkout a git repository'
 inputs:
   # Sparse checkout
