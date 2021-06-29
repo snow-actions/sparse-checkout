@@ -1,5 +1,8 @@
 name: 'Sparse checkout action'
 description: 'Sparse checkout a git repository'
+branding:
+  icon: 'minimize-2'
+  color: 'gray-dark'
 inputs:
   # Sparse checkout
   patterns:
