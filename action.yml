@@ -1,0 +1,156 @@
+name: 'Sparse checkout'
+description: 'Sparse checkout a git repository'
+inputs:
+  # Sparse checkout
+  patterns:
+    description: >
+      Write a set of patterns to the sparse-checkout file.
+
+      [Learn more about set](https://git-scm.com/docs/git-sparse-checkout#Documentation/git-sparse-checkout.txt-emsetem)
+    required: true
+
+  # Same as actions/checkout
+  repository:
+    description: 'Repository name with owner. For example, snow-actions/sparse-checkout'
+    default: ${{ github.repository }}
+    required: false
+  ref:
+    description: >
+      The branch, tag or SHA to checkout. When checking out the repository that
+      triggered a workflow, this defaults to the reference or SHA for that
+      event.  Otherwise, uses the default branch.
+    required: false
+  token:
+    description: >
+      Personal access token (PAT) used to fetch the repository. The PAT is configured
+      with the local git config, which enables your scripts to run authenticated git
+      commands. The post-job step removes the PAT.
+
+
+      We recommend using a service account with the least permissions necessary.
+      Also when generating a new PAT, select the least scopes necessary.
+
+
+      [Learn more about creating and using encrypted secrets](https://help.github.com/en/actions/automating-your-workflow-with-github-actions/creating-and-using-encrypted-secrets)
+    default: ${{ github.token }}
+    required: false
+  path:
+    description: 'Relative path under $GITHUB_WORKSPACE to place the repository'
+    default: '.'
+    required: false
+
+runs:
+  using: composite
+  steps:
+    - name: Setting git path
+      run: |
+        if [ "$RUNNER_OS" == "macOS" ]; then
+          echo "GIT=/usr/local/bin/git" >> $GITHUB_ENV
+        elif [ "$RUNNER_OS" == "Windows" ]; then
+          echo "GIT=/cmd/git" >> $GITHUB_ENV
+        else
+          echo "GIT=/usr/bin/git" >> $GITHUB_ENV
+        fi
+      shell: bash
+
+    - name: Creating directory
+      run: /bin/mkdir -p $DIRECTORY
+      env:
+        DIRECTORY: ${{ inputs.path }}
+      shell: bash
+
+    - name: Getting Git version info
+      run: |
+        echo "::group::Getting Git version info"
+        $GIT version
+        echo "::endgroup::"
+      shell: bash
+
+    - name: Initializing the repository
+      run: |
+        echo "::group::Initializing the repository"
+        $GIT init
+        $GIT remote add origin ${GITHUB_SERVER_URL}/${REPOSITORY}
+        $GIT remote -v
+        echo "::endgroup::"
+      env:
+        REPOSITORY: ${{ inputs.repository }}
+      working-directory: ${{ inputs.path }}
+      shell: bash
+
+    - name: Disabling automatic garbage collection
+      run: |
+        echo "::group::Disabling automatic garbage collection"
+        $GIT config --local gc.auto 0
+        echo "::endgroup::"
+      working-directory: ${{ inputs.path }}
+      shell: bash
+
+    - name: Setting up auth
+      run: |
+        echo "::group::Setting up auth"
+        BASIC_CREDENTIAL="x-access-token:$(echo $TOKEN | xxd -p -c 256)"
+        echo "::add-mask::${BASIC_CREDENTIAL}"
+        $GIT config --local http.${GITHUB_SERVER_URL}/.extraheader "AUTHORIZATION: basic ${BASIC_CREDENTIAL}"
+        echo "::endgroup::"
+      env:
+        TOKEN: ${{ inputs.token }}
+      shell: bash
+
+    - name: Setting up sparse checkout
+      run: |
+        echo "::group::Setting up sparse checkout"
+        $GIT sparse-checkout init --cone
+        $GIT sparse-checkout set $PATTERNS
+        echo "::endgroup::"
+      env:
+        PATTERNS: ${{ inputs.patterns }}
+      working-directory: ${{ inputs.path }}
+      shell: bash
+
+    - name: Fetching the repository
+      run: |
+        echo "::group::Fetching the repository"
+        echo $REF
+        if [ -z "$REF" ]; then
+          if [ "$REPOSITORY" == "$GITHUB_REPOSITORY" ]; then
+            REF="${GITHUB_REF/#refs\/heads\//}"
+          else
+            REF=$(gh api repos/$REPOSITORY --jq '.default_branch')
+          fi
+        fi
+        echo $REF
+        $GIT -c protocol.version=2 fetch --no-tags --prune --progress --depth=1 origin +${REF}:refs/remotes/origin/${REF}
+        echo "::endgroup::"
+      env:
+        REF: ${{ inputs.ref }}
+        REPOSITORY: ${{ inputs.repository }}
+        GH_TOKEN: ${{ inputs.token }}
+      working-directory: ${{ inputs.path }}
+      shell: bash
+
+    - name: Checking out the ref
+      run: |
+        echo "::group::Checking out the ref"
+        # FIXME: duplication with fetch
+        echo $REF
+        if [ -z "$REF" ]; then
+          if [ "$REPOSITORY" == "$GITHUB_REPOSITORY" ]; then
+            REF="${GITHUB_REF/#refs\/heads\//}"
+          else
+            REF=$(gh api repos/$REPOSITORY --jq '.default_branch')
+          fi
+        fi
+        echo $REF
+        $GIT checkout --progress --force -B $REF refs/remotes/origin/$REF
+        echo "::endgroup::"
+      env:
+        REF: ${{ inputs.ref }}
+        REPOSITORY: ${{ inputs.repository }}
+        GH_TOKEN: ${{ inputs.token }}
+      working-directory: ${{ inputs.path }}
+      shell: bash
+
+    - name: Logging commit sha
+      run: $GIT log -1 --format='%H'
+      shell: bash

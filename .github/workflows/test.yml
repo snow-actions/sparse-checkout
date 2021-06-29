@@ -1,0 +1,74 @@
+name: Test
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ ubuntu-20.04, ubuntu-18.04, windows-2019, windows-2016, macos-10.15 ]
+      fail-fast: false
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: path
+        uses: ./
+        with:
+          path: path
+      - name: result of path
+        run: |
+          set -x
+          git sparse-checkout list
+          git log
+          ls -la
+        working-directory: path
+
+      - name: ref
+        uses: ./
+        with:
+          ref: main
+          path: ref
+      - name: result of ref
+        run: |
+          set -x
+          git sparse-checkout list
+          git log
+          ls -la
+        working-directory: ref
+
+      - name: sha
+        uses: ./
+        with:
+          ref: e670a3432fc53f53bd8702ca997ed12b4c9d0f2f
+          path: sha
+      - name: result of sha
+        run: |
+          set -x
+          git sparse-checkout list
+          git log
+          ls -la
+        working-directory: sha
+
+      - name: repository
+        uses: ./
+        with:
+          repository: snow-actions/tweet
+          patterns: |
+            .github
+            src
+          path: repository
+      - name: result of repository
+        run: |
+          set -x
+          git sparse-checkout list
+          git log
+          ls -la
+        working-directory: repository
