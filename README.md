@@ -13,7 +13,7 @@ jobs:
   checkout:
     runs-on: ubuntu-20.04
     steps:
-      - uses: snow-actions/sparse-checkout@v1.0.0
+      - uses: snow-actions/sparse-checkout@v1.0.1
         with:
           patterns: |
             .github
