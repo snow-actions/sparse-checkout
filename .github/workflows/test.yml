@@ -75,7 +75,6 @@ jobs:
 
   uses:
     runs-on: ${{ matrix.os }}
-    needs: [ local ]
     strategy:
       matrix:
         os: [ ubuntu-20.04, ubuntu-18.04, windows-2019, windows-2016, macos-10.15 ]
@@ -83,12 +82,12 @@ jobs:
     defaults:
       run:
         shell: bash
+    if: github.ref == 'refs/heads/main'
 
     steps:
-      - uses: snow-actions/sparse-checkout@private-repository
+      - uses: snow-actions/sparse-checkout@main
         with:
           repository: snow-actions/private-repository
           patterns: |
             dir1
           token: ${{ secrets.PAT }}
-
