@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  test:
+  local:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -72,3 +72,23 @@ jobs:
           git log
           ls -la
         working-directory: repository
+
+  uses:
+    runs-on: ${{ matrix.os }}
+    needs: [ local ]
+    strategy:
+      matrix:
+        os: [ ubuntu-20.04, ubuntu-18.04, windows-2019, windows-2016, macos-10.15 ]
+      fail-fast: false
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - uses: snow-actions/sparse-checkout@private-repository
+        with:
+          repository: snow-actions/private-repository
+          patterns: |
+            dir1
+          token: ${{ secrets.PAT }}
+
