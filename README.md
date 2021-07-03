@@ -1,6 +1,7 @@
 # Sparse checkout
 
-Sparse checkout a git repository.
+Sparse checkout a git repository.  
+Based on [actions/checkout](https://github.com/actions/checkout).
 
 ## Usage
 
