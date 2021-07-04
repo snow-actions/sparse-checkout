@@ -35,8 +35,7 @@ See [action.yml](action.yml).
 Other actions/checkout inputs will be supported.
 
 ## Support OS
-
-See [test.yml](.github/workflows/test.yml).
+[![Test](https://github.com/snow-actions/sparse-checkout/actions/workflows/test.yml/badge.svg)](https://github.com/snow-actions/sparse-checkout/actions/workflows/test.yml)
 
 * `ubuntu-20.04` (`ubuntu-latest`)
 * `ubuntu-18.04`
