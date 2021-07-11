@@ -57,7 +57,10 @@ runs:
       shell: bash
 
     - name: Creating directory
-      run: /bin/mkdir -p $DIRECTORY
+      run: |
+        if [ -n "$DIRECTORY" ]; then
+          /bin/mkdir -p $DIRECTORY
+        fi
       env:
         DIRECTORY: ${{ inputs.path }}
       shell: bash
