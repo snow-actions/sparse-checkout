@@ -1,7 +1,6 @@
 # Sparse checkout
 
-Sparse checkout a git repository.  
-Based on [actions/checkout](https://github.com/actions/checkout).
+Sparse checkout a git repository like [actions/checkout](https://github.com/actions/checkout).
 
 ## Usage
 
@@ -31,8 +30,6 @@ See [action.yml](action.yml).
 |ref|optional|Same as actions/checkout|`''`|
 |token|optional|Same as actions/checkout|`${{ github.token }}`|
 |path|optional|Same as actions/checkout|`'.'`|
-
-Other actions/checkout inputs will be supported.
 
 ## Support OS
 [![Test](https://github.com/snow-actions/sparse-checkout/actions/workflows/test.yml/badge.svg)](https://github.com/snow-actions/sparse-checkout/actions/workflows/test.yml)
