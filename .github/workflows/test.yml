@@ -2,6 +2,8 @@ name: Test
 
 on:
   push:
+    branches:
+      - main
   pull_request:
   workflow_dispatch:
 
@@ -73,7 +75,7 @@ jobs:
           ls -la
         working-directory: repository
 
-  uses:
+  global:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -82,7 +84,7 @@ jobs:
     defaults:
       run:
         shell: bash
-    if: github.ref == 'refs/heads/main'
+    if: github.action == 'push' github.ref == 'refs/heads/main'
 
     steps:
       - uses: snow-actions/sparse-checkout@main
