@@ -84,7 +84,7 @@ jobs:
     defaults:
       run:
         shell: bash
-    if: github.action == 'push' github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     steps:
       - uses: snow-actions/sparse-checkout@main
