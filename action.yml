@@ -37,6 +37,9 @@ inputs:
       [Learn more about creating and using encrypted secrets](https://help.github.com/en/actions/automating-your-workflow-with-github-actions/creating-and-using-encrypted-secrets)
     default: ${{ github.token }}
     required: false
+  default_branch:
+    description: The default branch. Usually master or main.
+    required: true
   path:
     description: 'Relative path under $GITHUB_WORKSPACE to place the repository'
     default: '.'
@@ -71,18 +74,26 @@ runs:
         $GIT version
         echo "::endgroup::"
       shell: bash
-
+    - uses: actions/setup-node@v2
+      with:
+        node-version: '14'
     - name: Initializing the repository
       run: |
         echo "::group::Initializing the repository"
+        git config --global init.defaultBranch "${DEFAULT_BRANCH}"
         $GIT init
-        $GIT remote add origin ${GITHUB_SERVER_URL/https:\/\//https:\/\/x-access-token:${TOKEN}@}/${REPOSITORY}
+        echo "repository initialized"
+        gh auth login --with-token "${TOKEN}"
+        echo "logged in to github"
+        $GIT remote add origin https://x-access-token:$(node -e "process.stdout.write(encodeURIComponent('${TOKEN}'))")@}github.com/${REPOSITORY}
+        echo "added remote"
         #$GIT remote add origin ${GITHUB_SERVER_URL}/${REPOSITORY}
         $GIT remote -v
         echo "::endgroup::"
       env:
         REPOSITORY: ${{ inputs.repository }}
         TOKEN: ${{ inputs.token }}
+        DEFAULT_BRANCH: ${{ inputs.default_branch }}
       working-directory: ${{ inputs.path }}
       shell: bash
 
