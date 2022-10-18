@@ -15,6 +15,7 @@ jobs:
     steps:
       - uses: snow-actions/sparse-checkout@v1.1.0
         with:
+          filter: blob:none
           patterns: |
             .github
 ```
@@ -30,6 +31,7 @@ See [action.yml](action.yml).
 |ref|optional|Same as actions/checkout|`''`|
 |token|optional|Same as actions/checkout|`${{ github.token }}`|
 |path|optional|Same as actions/checkout|`'.'`|
+|filter|optional|filter-spec to omit objects/blogs when fetching |`''`|
 
 ## Support OS
 [![Test](https://github.com/snow-actions/sparse-checkout/actions/workflows/test.yml/badge.svg)](https://github.com/snow-actions/sparse-checkout/actions/workflows/test.yml)
