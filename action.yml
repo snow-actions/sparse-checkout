@@ -41,7 +41,11 @@ inputs:
     description: 'Relative path under $GITHUB_WORKSPACE to place the repository'
     default: '.'
     required: false
-
+  filter:
+    description: > 
+      Use the partial clone feature and request that the server sends a subset of reachable objects according to a given object filter.
+    default: ''
+    required: false
 runs:
   using: composite
   steps:
@@ -77,7 +81,6 @@ runs:
         echo "::group::Initializing the repository"
         $GIT init
         $GIT remote add origin ${GITHUB_SERVER_URL/https:\/\//https:\/\/x-access-token:${TOKEN}@}/${REPOSITORY}
-        #$GIT remote add origin ${GITHUB_SERVER_URL}/${REPOSITORY}
         $GIT remote -v
         echo "::endgroup::"
       env:
@@ -93,18 +96,6 @@ runs:
         echo "::endgroup::"
       working-directory: ${{ inputs.path }}
       shell: bash
-
-# This doesn't work. What is wrong?
-#     - name: Setting up auth
-#       run: |
-#         echo "::group::Setting up auth"
-#         BASIC_CREDENTIAL=$(echo "x-access-token:${TOKEN}" | base64 -w0)
-#         echo "::add-mask::${BASIC_CREDENTIAL}"
-#         $GIT config --local http.${GITHUB_SERVER_URL}/.extraHeader "AUTHORIZATION: basic ${BASIC_CREDENTIAL}"
-#         echo "::endgroup::"
-#       env:
-#         TOKEN: ${{ inputs.token }}
-#       shell: bash
 
     - name: Setting up sparse checkout
       run: |
@@ -127,12 +118,19 @@ runs:
             REF=$(gh api repos/$REPOSITORY --jq '.default_branch')
           fi
         fi
-        $GIT -c protocol.version=2 fetch --no-tags --prune --progress --depth=1 origin +${REF}:refs/remotes/origin/${REF}
+
+        FILTER_ARG="--no-filter"
+        if [ -n "$FILTER" ]; then
+          FILTER_ARG="--filter=$FILTER"
+        fi
+        
+        $GIT -c protocol.version=2 fetch --no-tags --prune --progress "$FILTER_ARG" --depth=1 origin +${REF}:refs/remotes/origin/${REF}
         echo "::endgroup::"
       env:
         REF: ${{ inputs.ref }}
         REPOSITORY: ${{ inputs.repository }}
         GH_TOKEN: ${{ inputs.token }}
+        FILTER: ${{ inputs.filter }}
       working-directory: ${{ inputs.path }}
       shell: bash
 
