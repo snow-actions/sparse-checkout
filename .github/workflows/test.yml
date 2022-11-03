@@ -78,7 +78,7 @@ jobs:
 
   local-passing:
     needs: [ local ]
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     timeout-minutes: 5
 
     steps:
