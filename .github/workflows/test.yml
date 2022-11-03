@@ -10,6 +10,7 @@ on:
 jobs:
   local:
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 5
     strategy:
       matrix:
         os: [ ubuntu-22.04, ubuntu-20.04, windows-2022, windows-2019, macos-12, macos-11 ]
@@ -75,8 +76,17 @@ jobs:
           ls -la
         working-directory: repository
 
+  local-passing:
+    needs: [ local ]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 5
+
+    steps:
+      - run: echo 'success'
+
   global:
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 5
     strategy:
       matrix:
         os: [ ubuntu-22.04, ubuntu-20.04, windows-2022, windows-2019, macos-12, macos-11 ]
