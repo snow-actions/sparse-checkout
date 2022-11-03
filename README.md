@@ -32,11 +32,16 @@ See [action.yml](action.yml).
 |path|optional|Same as actions/checkout|`'.'`|
 |filter|optional|filter-spec to omit objects/blobs when fetching |`''`|
 
-## Support OS
+## Supported
+
+### Events
+
+- Any
+
+### Runners
+
 [![Test](https://github.com/snow-actions/sparse-checkout/actions/workflows/test.yml/badge.svg)](https://github.com/snow-actions/sparse-checkout/actions/workflows/test.yml)
 
-* `ubuntu-20.04` (`ubuntu-latest`)
-* `ubuntu-18.04`
-* `windows-2019` (`windows-latest`)
-* `windows-2016`
-* `macos-10.15` (`macos-latest`)
+* `ubuntu-*`
+* `windows-*`
+* `macos-*`
