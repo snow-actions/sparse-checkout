@@ -1,0 +1,80 @@
+name: Increment version
+
+on:
+  workflow_dispatch:
+    inputs:
+      increment-version:
+        description: Increment version (Semantic Versioning)
+        required: true
+        default: patch
+        type: choice
+        options:
+          - major
+          - minor
+          - patch
+
+jobs:
+  increment-version:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Latest version
+        run: |
+          set -x
+          tag=$(gh api /repos/${GITHUB_REPOSITORY}/releases/latest --jq '.tag_name')
+          echo "LATEST_VERSION=$tag" >> $GITHUB_ENV
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - name: Next version
+        id: next-version
+        run: |
+          set -x
+          
+          if [[ ${LATEST_VERSION} =~ ^(.*?)([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+            prefix=${BASH_REMATCH[1]}
+            major=${BASH_REMATCH[2]}
+            minor=${BASH_REMATCH[3]}
+            patch=${BASH_REMATCH[4]}
+          else
+            exit 1
+          fi
+          
+          case "$INCREMENT_VERSION" in
+            "major")
+              ((++major)); minor=0; patch=0;;
+            "minor")
+              ((++minor)); patch=0;;
+            "patch")
+              ((++patch));;
+          esac
+          
+          next_version="${prefix}${major}.${minor}.${patch}"
+          echo "NEXT_VERSION=$next_version" >> $GITHUB_ENV
+        env:
+          INCREMENT_VERSION: ${{ github.event.inputs.increment-version }}
+    
+      - uses: actions/checkout@v3
+      - name: Update README
+        id: version
+        run: |
+          set -x
+          sed -i -e "s|${GITHUB_REPOSITORY}@${LATEST_VERSION}|${GITHUB_REPOSITORY}@${NEXT_VERSION}|g" README.md
+          git diff
+      - uses: snow-actions/git-config-user@v1.0.0
+      - id: generate-token
+        uses: tibdex/github-app-token@v1.7.0
+        with:
+          app_id: ${{ secrets.APP_ID }}
+          private_key: ${{ secrets.APP_PRIVATE_KEY }}
+      - name: Commit & PR
+        run: |
+          set -x
+          branch="release/${NEXT_VERSION}"
+          git switch -c ${branch}
+          git add .
+          git commit -m "${NEXT_VERSION}"
+          git push origin ${branch}
+          gh pr create --base ${GITHUB_REF_NAME} --head ${branch} --assignee ${GITHUB_ACTOR} --title ${NEXT_VERSION} --body ''
+        env:
+          GH_TOKEN: ${{ steps.generate-token.outputs.token }}
